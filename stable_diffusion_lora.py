@@ -1,37 +1,39 @@
 import torch
 from diffusers import StableDiffusionPipeline
-from PIL import Image
 
-# Убедимся, что используем CPU
-device = "cpu"
+# Выбор устройства
+device = "cuda" if torch.cuda.is_available() else "cpu"
 
-# Загружаем модель (это может занять некоторое время и потребовать несколько гигабайт памяти)
+# Загружаем Stable Diffusion (обычная FP16 модель, без 8-бит)
 pipe = StableDiffusionPipeline.from_pretrained(
-    "playgroundai/playground-v2.5-1024px-aesthetic",
-    torch_dtype=torch.float16,  # Используем float32 для CPU
-    safety_checker=None,        # Отключаем safety checker для ускорени
-    revision="fp16",           # Используем fp16 для экономии памяти
+    "runwayml/stable-diffusion-v1-5",  # Или другой совместимый checkpoint
+    torch_dtype=torch.float16 if device == "cuda" else torch.float32,
+    use_safetensors=True
 ).to(device)
 
-# Функция для генерации изображения сердца
-def generate_heart(prompt="A beautiful red heart, shiny, aesthetic, high quality", 
-                  negative_prompt="text, watermark, low quality, blurry",
-                  steps=20, guidance_scale=7.5):
-    # Генерируем изображение
+# Загрузка LoRA адаптера
+lora_paths = [ "lora\AbstractHeart.safetensors", "lora\CloudyHearts.safetensors", "lora\CrystalsHeart.safetensors" ]
+
+for lora_path in lora_paths:
+    # Загружаем LoRA адаптер
+    pipe.load_lora_weights(lora_path)
+
+    # (необязательно) Можно ослабить или усилить влияние LoRA:
+    pipe.fuse_lora(lora_scale=1.0)
+
+    # Промпт
+    prompt = "a cute heart with flames, fire, love, centered on a white background, white bachground, minimalistic flat design, highly aesthetic, high resolution"
+    negative_prompt = "blue, brown, patterns, gradients, multiple hearts, recursive shapes, frames, shadows, clutter"
+
+    # Генерация
     image = pipe(
         prompt=prompt,
         negative_prompt=negative_prompt,
-        num_inference_steps=steps,
-        guidance_scale=guidance_scale,
-        width=1024,
-        height=1024,
+        guidance_scale=7.5,
+        num_inference_steps=30
     ).images[0]
-    
-    return image
 
-# Генерируем и сохраняем изображение
-heart_image = generate_heart()
-heart_image.save("generated_heart.png")
-heart_image.show()
-
-print("Изображение сердца успешно сгенерировано и сохранено как 'generated_heart.png'")
+    # Сохраняем результат
+    picture_name = lora_path.split("\\")[-1].split(".")[0]  # Извлекаем имя файла без расширения
+    image.save(f"{picture_name}_heart.png")
+    print(f"Изображение сохранено как {picture_name}_heart.png")

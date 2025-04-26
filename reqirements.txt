@@ -1,0 +1,4 @@
+pymongo
+aiogram
+torch
+duffusers

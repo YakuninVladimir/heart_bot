@@ -1,6 +1,6 @@
 import pymongo
-from user import User
-from typing import override
+from user import User, HeartStyle
+from typing_extensions import override
 import logging
 from abc import ABC
 
@@ -13,6 +13,9 @@ class DBHandler(ABC):
         pass
 
     def get_user(user_id : str) -> User:
+        pass
+
+    def update_user(self, user : User) -> None:
         pass
 
 class MongoDBHandler(DBHandler):
@@ -36,13 +39,37 @@ class MongoDBHandler(DBHandler):
         if not cur_user:
             self._db[users_col_name].insert_one({
                 'user_id' : user_id,
-                'username' : username
+                'username' : username,
+                'heart_style' : HeartStyle().to_dict()
             })
             logger.info(f'created user: {user_id}')
+            return User(
+                username,
+                user_id,
+                HeartStyle()
+            )
 
         return User(
             username,
-            user_id
+            user_id,
+            HeartStyle(
+                cur_user['heart_style']['style'],
+                cur_user['heart_style']['form'],
+                cur_user['heart_style']['color'],
+                cur_user['heart_style']['props'],
+                cur_user['heart_style']['size']
+            )
         )
 
-
+    @override
+    def update_user(self, user : User) -> None:
+        users_col_name = 'users'
+        self._db[users_col_name].update_one(
+            {"user_id" : user.user_id},
+            {
+                "$set" : {
+                    "username" : user.username,
+                    "heart_style" : user.heart_style.to_dict()
+                }
+            }
+        )

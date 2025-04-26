@@ -1,4 +1,12 @@
 {
-    "start_text": "Привет, {username}! \n Этот бот может отправить любому из твоих друзей сердечко, которое ты хочешь.",
-    "help_text": "TODO."
+    "start_message": "Привет, {username}! \n Этот бот может отправить любому из твоих друзей сердечко, которое ты хочешь.",
+    "help_message": "TODO.",
+    "generate_message" : "Сердечко сгенерировано!",
+    "show_settings_message" : "{}\n ваши настройки: \n\n стиль: {} \n форма: {} \n цвет: {} \n дополнительные свойства: {} \n размер: {}",
+    "heart_style_message" : "Выберите стиль сердечка",
+    "heart_form_message" : "Выберите форму",
+    "heart_color_message" : "Выберите цвет",
+    "heart_props_message" : "Выберите дополнительные свойства",
+    "heart_size_message" : "Выберите размер",
+    "commands_message" : "Доступные команды: \n /start - начать \n /help - помощь \n /generation_setitngs - настройки генерации \n /generate - сгенерировать сердечко \n /show_settings - показать настройки"
 }
